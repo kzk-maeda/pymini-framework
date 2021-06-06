@@ -14,6 +14,7 @@ class API:
     return response(environ, start_response)
 
 
+  # Decorator
   def route(self, path: str) -> Callable:
     def wrapper(handler):
       self.routes[path] = handler
@@ -30,5 +31,11 @@ class API:
       if path == request.path:
         handler(request, response)
         return response
-
+    
+    self._default_response(response)
     return response
+
+
+  def _default_response(self, response: Response) -> None:
+    response.status_code = 404
+    response.text = 'Not Found'
