@@ -1,6 +1,6 @@
 # api.py
 from typing import Callable, Dict
-from webob import Request, Response
+from webob import Request, Response, request
 
 class API:
   def __init__(self) -> None:
@@ -27,15 +27,22 @@ class API:
     user_agent = request.environ.get("HTTP_USER_AGENT", "No User Agent Found")
 
     response = Response()
-    for path, handler in self.routes.items():
-      if path == request.path:
-        handler(request, response)
-        return response
+    handler = self._find_handler(request_path=request.path)
+
+    if handler is not None:
+      handler(request, response)
+    else:
+      self._default_response(response)
     
-    self._default_response(response)
     return response
 
 
   def _default_response(self, response: Response) -> None:
     response.status_code = 404
     response.text = 'Not Found'
+  
+
+  def _find_handler(self, request_path: str) -> Callable:
+    for path, handler in self.routes.items():
+      if path == request_path:
+        return handler
