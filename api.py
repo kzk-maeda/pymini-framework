@@ -25,6 +25,7 @@ class API:
     
     return wrapper
 
+
   @print_info
   def handle_request(self, request: Request) -> Response:
     user_agent = request.environ.get("HTTP_USER_AGENT", "No User Agent Found")
@@ -39,11 +40,13 @@ class API:
     
     return response
 
+
   @print_info
   def _default_response(self, response: Response) -> None:
     response.status_code = 404
     response.text = 'Not Found'
   
+
   @print_info
   def _find_handler(self, request_path: str) -> Callable:
     for path, handler in self.routes.items():
