@@ -1,4 +1,5 @@
 # api.py
+import inspect
 from typing import Callable, Dict, Tuple
 from parse import parse
 from webob import Request, Response, request
@@ -37,6 +38,11 @@ class API:
     handler, kwargs = self._find_handler(request_path=request.path)
 
     if handler is not None:
+      if inspect.isclass(handler):
+        handler = getattr(handler(), request.method.lower(), None)
+        if handler is None:
+          raise AttributeError("Method not allowed", request.method)
+      
       handler(request, response, **kwargs)
     else:
       self._default_response(response)

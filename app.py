@@ -24,7 +24,18 @@ def greeting(request: Request, response: Response, name: str) -> None:
   response.text = f'Hello , {name}'
 
 
+@print_info
 @app.route("/sum/{num_1:d}/{num_2:d}")
 def sum(request: Request, response: Response, num_1: int, num_2: int) -> None:
     total = int(num_1) + int(num_2)
     response.text = f"{num_1} + {num_2} = {total}"
+
+
+@print_info
+@app.route('/book')
+class BooksResource:
+  def get(self, req: Request, res: Response) -> None:
+    res.text = "Books Page"
+  
+  def post(self, req: Request, res: Response) -> None:
+    res.text = "Endpoint to create a book"
