@@ -1,5 +1,6 @@
 # api.py
-from typing import Callable, Dict
+from typing import Callable, Dict, Tuple
+from parse import parse
 from webob import Request, Response, request
 from util import print_info
 
@@ -31,10 +32,10 @@ class API:
     user_agent = request.environ.get("HTTP_USER_AGENT", "No User Agent Found")
 
     response = Response()
-    handler = self._find_handler(request_path=request.path)
+    handler, kwargs = self._find_handler(request_path=request.path)
 
     if handler is not None:
-      handler(request, response)
+      handler(request, response, **kwargs)
     else:
       self._default_response(response)
     
@@ -48,7 +49,10 @@ class API:
   
 
   @print_info
-  def _find_handler(self, request_path: str) -> Callable:
+  def _find_handler(self, request_path: str) -> Tuple[Callable, Dict]:
     for path, handler in self.routes.items():
-      if path == request_path:
-        return handler
+      parse_result = parse(path, request_path)
+      if parse_result is not None:
+        return handler, parse_result.named
+    
+    return None, None
