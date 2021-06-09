@@ -20,6 +20,12 @@ def about(request: Request, response: Response) -> None:
 
 
 @print_info
+@app.route('/contact')
+def contact(request: Request, response: Response) -> None:
+  response.text = 'Hello from the Contact page'
+
+
+@print_info
 @app.route('/hello/{name}')
 def greeting(request: Request, response: Response, name: str) -> None:
   response.text = f'Hello , {name}'
