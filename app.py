@@ -46,3 +46,9 @@ def handler(request: Request, response: Response) -> None:
 
 
 app.add_route('/sample', handler)
+
+
+@app.route("/template")
+def template_handler(req, res):
+    res.body = app.template(
+        "index.html", context={"name": "Bumbo", "title": "Best Framework"}).encode()

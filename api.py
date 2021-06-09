@@ -1,15 +1,23 @@
 # api.py
 import inspect
+import os
 from typing import Callable, Dict, Tuple
 from parse import parse
 from webob import Request, Response
 from requests import Session as RequestsSession
 from wsgiadapter import WSGIAdapter as RequestsWSGIAdapter
+from jinja2 import Environment, FileSystemLoader
+
 from util import print_info
 
+
 class API:
-  def __init__(self) -> None:
+  @print_info
+  def __init__(self, templates_dir='templates') -> None:
     self.routes = {}
+    self.templates_env = Environment(
+      loader=FileSystemLoader(os.path.abspath(templates_dir))
+    )
 
 
   @print_info
@@ -73,6 +81,14 @@ class API:
       self._default_response(response)
     
     return response
+  
+
+  @print_info
+  def template(self, template_name: str, context: Dict = None) -> str:
+    if context is None:
+      context = {}
+    
+    return self.templates_env.get_template(template_name).render(**context)
 
 
   @print_info
