@@ -20,13 +20,36 @@ class API:
     return response(environ, start_response)
 
 
-  # Decorator
   @print_info
-  def route(self, path: str) -> Callable:
+  def add_route(self, path: str, handler: Callable) -> None:
+    '''
+    Common method and Django like route
+    Usage:
+      in app class or method, define route as function such like
+
+      def func(req, res):
+        do something
+      
+      app.add_route(path, func)
+    '''
     assert path not in self.routes, f'Such route already exists: {path}'
 
+    self.routes[path] = handler
+
+
+  @print_info
+  def route(self, path: str) -> Callable:
+    '''
+    Flask like route
+    Usage:
+      in app class or method, define route as decorator such like
+
+      @app.route('/path')
+      def func(req, res):
+        do something
+    '''
     def wrapper(handler):
-      self.routes[path] = handler
+      self.add_route(path, handler)
       return handler
     
     return wrapper
