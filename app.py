@@ -39,3 +39,10 @@ class BooksResource:
   
   def post(self, req: Request, res: Response) -> None:
     res.text = "Endpoint to create a book"
+
+
+def handler(request: Request, response: Response) -> None:
+  response.text = 'Sample'
+
+
+app.add_route('/sample', handler)
