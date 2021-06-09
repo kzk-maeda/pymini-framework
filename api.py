@@ -8,22 +8,29 @@ from webob import Request, Response
 from requests import Session as RequestsSession
 from wsgiadapter import WSGIAdapter as RequestsWSGIAdapter
 from jinja2 import Environment, FileSystemLoader
+from whitenoise import WhiteNoise
 
 from util import print_info
 
 
 class API:
   @print_info
-  def __init__(self, templates_dir='templates') -> None:
+  def __init__(self, templates_dir: str='templates', static_dir: str='static') -> None:
     self.routes = {}
     self.templates_env = Environment(
       loader=FileSystemLoader(os.path.abspath(templates_dir))
     )
     self.exception_handler = None
+    self.whitenoise = WhiteNoise(self.wsgi_app, root=static_dir)
 
 
   @print_info
   def __call__(self, environ: Dict, start_response: Callable) -> Response:
+    return self.whitenoise(environ, start_response)
+
+
+  @print_info
+  def wsgi_app(self, environ: Dict, start_response: Callable) -> Response:
     request = Request(environ)
     response = self.handle_request(request)
 
@@ -138,3 +145,8 @@ class API:
     session = RequestsSession()
     session.mount(prefix=base_url, adapter=RequestsWSGIAdapter(self))
     return session
+  
+
+  @print_info
+  def test_404_is_returned_for_nonexistent_staticfile(client):
+    assert client.get(f"http://testserver/main.css)").status_code == 404
