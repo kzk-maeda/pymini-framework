@@ -2,7 +2,7 @@
 import inspect
 from typing import Callable, Dict, Tuple
 from parse import parse
-from webob import Request, Response, request
+from webob import Request, Response
 from util import print_info
 
 class API:
