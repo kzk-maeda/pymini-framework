@@ -20,6 +20,8 @@ class API:
   # Decorator
   @print_info
   def route(self, path: str) -> Callable:
+    assert path not in self.routes, f'Such route already exists: {path}'
+
     def wrapper(handler):
       self.routes[path] = handler
       return handler
