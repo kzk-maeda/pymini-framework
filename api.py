@@ -1,8 +1,9 @@
 # api.py
 import inspect
 import os
-from typing import Callable, Dict, Tuple
+from typing import Any, Callable, Dict, Tuple
 from parse import parse
+import requests
 from webob import Request, Response
 from requests import Session as RequestsSession
 from wsgiadapter import WSGIAdapter as RequestsWSGIAdapter
@@ -18,6 +19,7 @@ class API:
     self.templates_env = Environment(
       loader=FileSystemLoader(os.path.abspath(templates_dir))
     )
+    self.exception_handler = None
 
 
   @print_info
@@ -28,6 +30,9 @@ class API:
     return response(environ, start_response)
 
 
+  #################################
+  ## Routes
+  #################################
   @print_info
   def add_route(self, path: str, handler: Callable) -> None:
     '''
@@ -63,6 +68,9 @@ class API:
     return wrapper
 
 
+  #################################
+  ## Request Handler
+  #################################
   @print_info
   def handle_request(self, request: Request) -> Response:
     user_agent = request.environ.get("HTTP_USER_AGENT", "No User Agent Found")
@@ -70,18 +78,25 @@ class API:
     response = Response()
     handler, kwargs = self._find_handler(request_path=request.path)
 
-    if handler is not None:
-      if inspect.isclass(handler):
-        handler = getattr(handler(), request.method.lower(), None)
-        if handler is None:
-          raise AttributeError("Method not allowed", request.method)
+    try:
+      if handler is not None:
+        if inspect.isclass(handler):
+          handler = getattr(handler(), request.method.lower(), None)
+          if handler is None:
+            raise AttributeError("Method not allowed", request.method)
+        
+        handler(request, response, **kwargs)
+      else:
+        self._default_response(response)
       
-      handler(request, response, **kwargs)
-    else:
-      self._default_response(response)
-    
-    return response
+    except Exception as e:
+      if self.exception_handler is None:
+        raise e
+      else:
+        self.exception_handler(request, response, e)
   
+    return response
+
 
   @print_info
   def template(self, template_name: str, context: Dict = None) -> str:
@@ -91,6 +106,17 @@ class API:
     return self.templates_env.get_template(template_name).render(**context)
 
 
+  #################################
+  ## Exception Handler
+  #################################
+  @print_info
+  def add_exception_handler(self, exception_handler: Any) -> Any:
+    self.exception_handler = exception_handler
+
+
+  #################################
+  ## Private Methods
+  #################################
   @print_info
   def _default_response(self, response: Response) -> None:
     response.status_code = 404

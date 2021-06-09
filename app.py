@@ -1,4 +1,5 @@
 # app.py
+from typing import Any
 from webob import Request, Response
 from api import API
 from util import print_info
@@ -41,6 +42,7 @@ class BooksResource:
     res.text = "Endpoint to create a book"
 
 
+@print_info
 def handler(request: Request, response: Response) -> None:
   response.text = 'Sample'
 
@@ -52,3 +54,16 @@ app.add_route('/sample', handler)
 def template_handler(req, res):
     res.body = app.template(
         "index.html", context={"name": "Bumbo", "title": "Best Framework"}).encode()
+
+
+@print_info
+def custom_exception_handler(request: Request, response: Response, exception_cls: Any) -> None:
+  response.text = str(exception_cls)
+
+app.add_exception_handler(custom_exception_handler)
+
+
+@print_info
+@app.route('/exception')
+def exception_throwing_handler(request, response):
+  raise AssertionError("This handler should not be used.")
