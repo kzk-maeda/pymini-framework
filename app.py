@@ -2,6 +2,7 @@
 from typing import Any
 from webob import Request, Response
 from api import API
+from middleware import Middleware
 from util import print_info
 
 app = API()
@@ -73,3 +74,14 @@ app.add_exception_handler(custom_exception_handler)
 @app.route('/exception')
 def exception_throwing_handler(request, response):
   raise AssertionError("This handler should not be used.")
+
+
+@print_info
+class SimpleCustomMiddleware(Middleware):
+  def process_request(self, req: Request) -> None:
+    print('Processing request', req.url)
+  
+  def process_response(self, req: Request, res: Response) -> None:
+    print('Processing response', req.url)
+
+app.add_middleware(SimpleCustomMiddleware)

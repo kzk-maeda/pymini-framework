@@ -10,6 +10,7 @@ from wsgiadapter import WSGIAdapter as RequestsWSGIAdapter
 from jinja2 import Environment, FileSystemLoader
 from whitenoise import WhiteNoise
 
+from middleware import Middleware
 from util import print_info
 
 
@@ -22,11 +23,13 @@ class API:
     )
     self.exception_handler = None
     self.whitenoise = WhiteNoise(self.wsgi_app, root=static_dir)
+    self.middleware = Middleware(self)
 
 
   @print_info
   def __call__(self, environ: Dict, start_response: Callable) -> Response:
-    return self.whitenoise(environ, start_response)
+    # return self.whitenoise(environ, start_response)
+    return self.middleware(environ, start_response)
 
 
   @print_info
@@ -119,6 +122,14 @@ class API:
   @print_info
   def add_exception_handler(self, exception_handler: Any) -> Any:
     self.exception_handler = exception_handler
+  
+
+  #################################
+  ## Middleware
+  ################################# 
+  @print_info
+  def add_middleware(self, middleware_cls) -> None:
+    self.middleware.add(middleware_cls)
 
 
   #################################

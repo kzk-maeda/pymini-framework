@@ -1,9 +1,9 @@
-from typing import Any
+from typing import Any, Callable
 import pytest
 from webob import Request, Response
 from requests import Session
 from api import API
-
+from middleware import Middleware
 
 
 ############
@@ -159,3 +159,31 @@ def test_assets_are_served(tmpdir_factory):
 
   assert response.status_code == 200
   assert response.text == FILE_CONTENTS
+
+
+def test_middleware_methods_are_calles(api: API, client: Callable):
+  process_request_called = False
+  process_response_called = False
+
+  class CallMiddlewareMethod(Middleware):
+    def __init__(self, app) -> None:
+      super().__init__(app)
+    
+    def process_request(self, req):
+      nonlocal process_request_called
+      process_request_called = True
+
+    def process_response(self, req, res):
+      nonlocal process_response_called
+      process_response_called = True
+  
+  api.add_middleware(CallMiddlewareMethod)
+
+  @api.route('/')
+  def index(req, res):
+    res.text = "YOLO"
+
+  client.get('http://testserver/')
+
+  assert process_request_called is True
+  assert process_response_called is True
