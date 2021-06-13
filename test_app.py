@@ -149,13 +149,17 @@ def test_custom_exception_handler(api: API, client: Session):
   assert response.text == 'AttributeErrroHappened'
 
 
+def test_404_is_returned_for_nonexistent_static_file(client: Session):
+  assert client.get(f'http://testserver/static/hoge.css').status_code == 404
+
+
 def test_assets_are_served(tmpdir_factory):
   static_dir = tmpdir_factory.mktemp('static')
   _create_static(static_dir)
   api = API(static_dir=str(static_dir))
   client = api.test_session()
 
-  response = client.get(f'http://testserver/{FILE_DIR}/{FILE_NAME}')
+  response = client.get(f'http://testserver/static/{FILE_DIR}/{FILE_NAME}')
 
   assert response.status_code == 200
   assert response.text == FILE_CONTENTS

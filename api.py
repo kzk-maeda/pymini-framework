@@ -28,7 +28,14 @@ class API:
 
   @print_info
   def __call__(self, environ: Dict, start_response: Callable) -> Response:
-    # return self.whitenoise(environ, start_response)
+    path_info = environ['PATH_INFO']
+
+    ## when request is toword to static files, wrap with whitenoise
+    if path_info.startswith('/static'):
+      environ['PATH_INFO'] = path_info[len('/static'):]
+      return self.whitenoise(environ, start_response)
+    
+    ## else, wrap with middleware
     return self.middleware(environ, start_response)
 
 
